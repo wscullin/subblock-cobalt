@@ -5,7 +5,15 @@ from jinja2 import Environment, FileSystemLoader
 import socket
 from random import randint as ri
 
-template_dir='../share/cobalt/etc/'
+try:
+   template_dir=os.environ['FW_DIR']
+   template_dir=template_dir+'/share/cobalt/etc/'
+except KeyError:
+    template_dir=os.path.realpath(__file__)
+    template_dir=template_dir.split("bin")[0]
+    template_dir=template_dir+'/share/cobalt/etc/'
+except:
+    template_dir='/projects/JCESR/fireworks/share/cobalt/etc/'
 
 conf_vars={}
 conf_vars.update(os.environ)
