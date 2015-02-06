@@ -13,7 +13,15 @@ umask 022
 # Local site paths:
 export MPIRUN_VERBOSE=0
 export LD_LIBRARY_PATH=/bgsys/drivers/ppcfloor/lib64:$LD_LIBRARY_PATH
-export FW_DIR=/projects/JCESR/fireworks
+if [ -z "${FW_DIR}" ]; then
+#	export FW_DIR=/projects/JCESR/fireworks
+	if [ -z "${BASH_SOURCE[0]}" ]; then
+		FW_DIR=$( cd $(dirname $0)/../ && pwd -P )
+	else
+		FW_DIR=$(cd $(dirname "${BASH_SOURCE[0]}")/../ && pwd -P)
+	fi
+fi
+
 export PROJECTBASEDIR=/projects/JCESR/runs
 
 # Paths based on site paths
