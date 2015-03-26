@@ -1,6 +1,5 @@
 #Makefile for python bindings for SWIG
 
-
 CC = /usr/bin/g++
 SWIG = /usr/bin/swig
 
@@ -9,10 +8,10 @@ MODULE = pybgsched
 SWIGFLAGS = -python -threads -c++
 INTERFACE_FILE = $(MODULE).i
 
-PYTHON_INCLUDE = /usr/include/python2.6
+PYTHON_INCLUDE = /projects/JCESR/fireworks/include/python2.7
 PYTHON_WRAPPER = $(MODULE).py
 
-BOOST = /bgsys/linux/RHEL6.1_base/usr
+BOOST = /bgsys/linux/ionfloor/usr
 HLCS = /bgsys/drivers/ppcfloor/hlcs
 LOG4CXX = /bgsys/drivers/ppcfloor/extlib
 CFLAGS = -Wall -c -fPIC -g -Wall -I$(BOOST)/include -I$(HLCS)/include -I$(PYTHON_INCLUDE)

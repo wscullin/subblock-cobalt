@@ -1,8 +1,8 @@
-#!/usr/bin/pytho#!/usr/bin/python
+#!/usr/bin/env python
 
 import pybgsched
 from pybgsched import getComputeHardware
-pybgsched.init("../bg.properties")
+pybgsched.init("/bgsys/local/etc//bg.properties")
 h = getComputeHardware()
 m = h.getMidplane('R00-M0')
 m.getState()

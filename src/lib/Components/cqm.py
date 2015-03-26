@@ -1421,11 +1421,13 @@ class Job (StateMachine):
                 t = string.Template(self.errorpath)
                 self.errorpath = t.safe_substitute(jobid=self.jobid)
 
-            # add the cobolt job id to the list of environment variables
+            # add the subblock cobalt job id to the list of environment variables
             # same for reservation id
-            self.envs['COBALT_JOBID'] = str(self.jobid)
+            self.envs['COBALT_JOBID'] = str(os.environ['COBALT_JOBID'])
+            self.envs['SBCOBALT_JOBID'] = str(self.jobid)
             if self.resid != None:
-                self.envs['COBALT_RESID'] = str(self.resid)
+                self.envs['COBALT_RESID'] = str(os.environ['COBALT_RESID'])
+                self.envs['SBCOBALT_RESID'] = str(self.resid)
 
             #This is being done later in the system component as well
             #so that the mpirun library sees these.

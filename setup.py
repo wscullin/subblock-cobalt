@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from distutils.core import setup, Extension
 from glob import glob
 
-setup(name="Cobalt",
-      version="$Version$",
-      description="Cobalt Resource Manager",
+setup(name="Subblock-Cobalt",
+      version="0.99.7-sb",
+      description="Cobalt Resource Manager for Sublocks",
       author="Cobalt Team",
       author_email="cobalt@mcs.anl.gov",
       packages=["Cobalt", "Cobalt.Components", "Cobalt.DataTypes", "Cobalt.Components.DBWriter"],
@@ -17,5 +17,6 @@ setup(name="Cobalt",
                   ('share/man/man5', glob('man/*.5')),
                   ('share/man/man8', glob('man/*.8')),
                   ('share/cobalt/etc', glob('tools/subblock/*.conf.tmpl'))]
-      )
+            )
+
 

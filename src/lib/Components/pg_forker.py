@@ -177,12 +177,16 @@ class PGChild (BaseChild):
     def preexec_last(self):
         # COBALT_JOBID and COBALT_RESID are special and must be part of the mpirun environment and the environment of any script
         # invoking mpirun.  they are added to the environment last so any values provided by the user are overwritten
-        self.env['COBALT_JOBID'] = str(self.pg.jobid)
+        self.env['COBALT_JOBID'] = str(os.environ['COBALT_JOBID'])
+        self.env['SBCOBALT_JOBID'] = str(self.pg.jobid)
         if self.pg.resid != None:
-            self.env['COBALT_RESID'] = str(self.pg.resid)
+            self.env['COBALT_RESID'] = str(os.environ['COBALT_RESID'])
+            self.env['SBCOBALT_RESID'] = str(self.pg.resid)
         #All jobs should get the time when Cobalt will terminate them.
-        self.env['COBALT_STARTTIME'] = str(int(float(self.pg.starttime)))
-        self.env['COBALT_ENDTIME'] = str(int(float(self.pg.starttime)) + (60 * int(self.pg.walltime)))
+        self.env['COBALT_STARTTIME'] = str(int(os.environ['COBALT_STARTTIME']))
+        self.env['COBALT_ENDTIME'] = str(int(os.environ['COBALT_ENDTIME']))
+        self.env['SBCOBALT_STARTTIME'] = str(int(float(self.pg.starttime)))
+        self.env['SBCOBALT_ENDTIME'] = str(int(float(self.pg.starttime)) + (60 * int(self.pg.walltime)))
 
         self.print_clf("")
         self.print_clf("Command: %s", self.cmd_string or convert_argv_to_quoted_command_string(self.args))
