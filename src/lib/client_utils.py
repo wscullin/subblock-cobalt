@@ -948,9 +948,12 @@ def cb_env(option,opt_str,value,parser,*args):
     """
     opts   = args[0]
     _env   = {}
+    print "%s DEBUG0 value: %s" %('cb_env',value)
     if 'env' in opts and opts['env']:
-        value=':'.join([value,opts['env']])
+        value=':'.join([opts['env'],value])
+        print "%s DEBUG0.1 value: %s" %('cb_env',value)
     _value = value.replace(ESC_COL, COL_TAG).replace(ESC_EQL, EQL_TAG)
+    print "%s DEBUG0 _value: %s" %('cb_env',_value)
     key_value_pairs = [item.split('=', 1) for item in re.split(r':(?=\w+\b=)', _value)]
     for kv in key_value_pairs:
         if len(kv) != 2:
@@ -961,7 +964,10 @@ def cb_env(option,opt_str,value,parser,*args):
     
     setattr(parser.values,option.dest,_env) # set the option
 
+    print "%s DEBUG1 _env: %s" %('cb_env',_env)
+    print "%s DEBUG1 value: %s" %('cb_env',value)
     opts['env'] = value
+    print "%s DEBUG [opts['env']] %s" %("cb_env",[opts['env']])
 
 def cb_autoenvs(option,opt_str,value,parser,*args):
     """
@@ -973,13 +979,19 @@ def cb_autoenvs(option,opt_str,value,parser,*args):
     _env   = {}
     try:
         # Split up the list and eliminate duplicates for -V
+        print "%s DEBUG0 value: %s" %('autoenvs',value)
         value=set(value.split(','))
+        print "%s DEBUG1 value: %s" %('autoenvs',value)
         if 'env' in opts:
             # address when -V is after --envs
-            _value=':'.join(["%s=%s" %(v,os.environ[v]) for v in value]+[opts['env']])
+            print "%s DEBUG1.1 [opts['env']] %s" %('autoenvs',[opts['env']])
+            _value=':'.join([opts['env']]+["%s=%s" %(v,os.environ[v].replace('=','\=')) for v in value])
+            print "%s DEBUG1.2 _value %s" %('autoenvs',_value)
         else:
-            _value=':'.join(["%s=%s" %(v,os.environ[v]) for v in value])
-    except:
+            print "%s DEBUG1.3 value %s" %('autoenvs',value)
+            _value=':'.join(["%s=%s" %(v,os.environ[v].replace('=','\=')) for v in value])
+            print "%s DEBUG1.4 _value %s" %('autoenvs',_value)
+    except KeyError:
         logger.error( "Missing or improperly formatted argument to V : %r" % v)
         sys.exit(-1)
     value=_value
@@ -993,8 +1005,10 @@ def cb_autoenvs(option,opt_str,value,parser,*args):
         _env.update({key:val.replace(COL_TAG,':').replace(EQL_TAG,'=')})
 
     setattr(parser.values,'envs',_env) # set the option
-
+    print "%s DEBUG2 value: %s" %('autoenvs',value)
     opts['env'] = value
+    print "%s DEBUG2 _env %s" %('autoenvs',_env)
+    print "%s DEBUG2 [opts['env']] %s" %('autoenvs',[opts['env']])
 
 
 def cb_path(option,opt_str,value,parser,*args):
