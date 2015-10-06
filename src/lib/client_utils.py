@@ -11,6 +11,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 import sys
 import pwd
 import os.path
+import os
 import xmlrpclib
 import ConfigParser
 import re
@@ -315,7 +316,7 @@ class header_info(object):
             self.custom_header = parser.options.header
 
         if parser.options.Q != None:
-            self.header = ['Name','Users','MinTime','MaxTime','MaxRunning',
+            self.header = ['Name','Users','Groups','MinTime','MaxTime','MaxRunning',
                            'MaxQueued','MaxUserNodes','MaxNodeHours','TotalNodes','State']
         elif parser.options.full != None and parser.options.long != None:
             self.header = self.long_header
@@ -947,6 +948,8 @@ def cb_env(option,opt_str,value,parser,*args):
     """
     opts   = args[0]
     _env   = {}
+    if 'env' in opts and opts['env']:
+        value=':'.join([value,opts['env']])
     _value = value.replace(ESC_COL, COL_TAG).replace(ESC_EQL, EQL_TAG)
     key_value_pairs = [item.split('=', 1) for item in re.split(r':(?=\w+\b=)', _value)]
     for kv in key_value_pairs:
@@ -957,8 +960,43 @@ def cb_env(option,opt_str,value,parser,*args):
         _env.update({key:val.replace(COL_TAG,':').replace(EQL_TAG,'=')})
     
     setattr(parser.values,option.dest,_env) # set the option
+
     opts['env'] = value
- 
+
+def cb_autoenvs(option,opt_str,value,parser,*args):
+    """
+    This callback will pull env variables from the environment and store them.
+
+    Todo: Deal with the case where a value is specified more than once.
+    """
+    opts   = args[0]
+    _env   = {}
+    try:
+        # Split up the list and eliminate duplicates for -V
+        value=set(value.split(','))
+        if 'env' in opts:
+            # address when -V is after --envs
+            _value=':'.join(["%s=%s" %(v,os.environ[v]) for v in value]+[opts['env']])
+        else:
+            _value=':'.join(["%s=%s" %(v,os.environ[v]) for v in value])
+    except:
+        logger.error( "Missing or improperly formatted argument to V : %r" % v)
+        sys.exit(-1)
+    value=_value
+    _value = value.replace(ESC_COL, COL_TAG).replace(ESC_EQL, EQL_TAG)
+    key_value_pairs = [item.split('=', 1) for item in re.split(r':(?=\w+\b=)', _value)]
+    for kv in key_value_pairs:
+        if len(kv) != 2:
+            logger.error( "Improperly formatted argument to env : %r" % kv)
+            sys.exit(1)
+    for key, val in key_value_pairs:
+        _env.update({key:val.replace(COL_TAG,':').replace(EQL_TAG,'=')})
+
+    setattr(parser.values,'envs',_env) # set the option
+
+    opts['env'] = value
+
+
 def cb_path(option,opt_str,value,parser,*args):
     """
     This callback will validate the path and store it.
