@@ -4,6 +4,8 @@ import os
 from jinja2 import Environment, FileSystemLoader
 import socket
 from random import randint as ri
+import functools
+
 
 try:
    template_dir=os.environ['FW_DIR']
@@ -22,6 +24,46 @@ def get_calced_cobalt_vars():
     part_name=conf_vars['COBALT_PARTNAME']
     job_size=part_name.split('-')[-1]
     return {'max_jobsize':job_size}
+
+def block_size(block_name):
+    return(int(block_name.split('-')[-1]))
+
+def block_size_compare(a,b):
+    return block_size(a)-block_size(b)
+        
+def gen_subblock_config():
+
+    try:
+        minsize=int(conf_vars['COBALT_SUBLOCK_MINSIZE'])
+    except:
+        minsize=1
+
+    try:
+        subblock_names=conf_vars['COBALT_PARTNAME_CHILDREN']
+        subblock_names=subblock_names.split(':')[-1].replace(' ','')
+        print subblock_names
+        # The minimum valid block length is 15 chars
+        if len(subblock_names) >= 15:
+            subblock_names=subblock_names.split(',')
+            subblock_names.sort(key=functools.cmp_to_key(block_size_compare))
+            try:
+                smallest_size=conf_vars['COBALT_SUBLOCK_PARENTSIZE']
+            except KeyError:
+                smallest_size=block_size(subblock_names[0])
+            if smallest_size >= 32:
+                smallest_size=str(smallest_size)
+            else:
+                smallest_size='128'
+            sb=['%s:%d' %(sb,minsize) for sb in subblock_names if sb.endswith(smallest_size)]
+            sb=','.join(sb)
+        else:
+            print "Setting sublock target to %s" %(conf_vars['COBALT_PARTNAME'])
+            sb='%s:%d' %(conf_vars['COBALT_PARTNAME'],minsize)
+    except KeyError:
+        print "Config generator defaulting to COBALT_PARTNAME"
+        sb='%s:%d' %(conf_vars['COBALT_PARTNAME'],minsize)
+ 
+    return {'subblock_config':sb}    
 
 def gen_password():
     """Generate a weak password"""
@@ -62,6 +104,8 @@ def main():
         conf_vars.update(cobalt_calcd_vars)
         password_cfg=gen_password()
         conf_vars.update(password_cfg)
+        subblock_cfg=gen_subblock_config()
+        conf_vars.update(subblock_cfg)
         cobalt_config=gen_cobalt_cfg()
         run_cfg_name=conf_vars['COBALT_CONFIG_FILES']
         run_cfg=open(run_cfg_name,'w')

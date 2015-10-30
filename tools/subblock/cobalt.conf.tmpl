@@ -12,7 +12,7 @@ ion_default_kernel: default
 partitionboot: /bgsys/argonne-utils/partitions
 bootprofiles: /bgsys/argonne-utils/profiles
 subblock_prefix: VST
-subblock_config: {{COBALT_PARTNAME}}:1
+subblock_config: {{subblock_config}}
 ignore_subblock_sizes: 64,32
 max_reboots: 3
 
@@ -25,6 +25,7 @@ use_db_logging: false
 max_queued_msgs: 10000
 # overflow_file: /projects/JCESR/fireworks/var/spool/cobalt/overflow/bgsched_overflow
 db_flush_interval: 1.0
+# schedule_jobs_interval: 2.0
 
 [cqm]
 log_dir: {{SC_RUNDIR}}/log/
@@ -38,8 +39,8 @@ job_prescripts: /bin/true
 # resource_postscripts: /soft/scripts/resource_postscript_1:/soft/scripts/resource_postscript_2
 # job_postscripts: /soft/scripts/job_postscript_1:/soft/scripts/job_postscript_2
 # filters: /soft/scripts/filter_1:/soft/scripts/filter_2
-# progress_interval: 1.0
-# poll_process_groups_interval: 1.0
+# progress_interval: 5.0
+# poll_process_groups_interval: 5.0
 cqstat_header_full: JobID:JobName:User:Score:WallTime:QueuedTime:RunTime:Nodes:State:Location:Mode:Procs:Queue:StartTime
 use_db_logging: false
 #max_queued_msgs: 10000
@@ -83,7 +84,7 @@ allow_cqadm_hold_and_release_options: true
 
 [logger]
 to_syslog: false
-syslog_level: INFO
+syslog_level: DEBUG
 # syslog_location: /var/run/syslog
 # syslog_facility: local7
 to_console: true
