@@ -24,6 +24,8 @@ fi
 
 export PROJECTBASEDIR=/projects/JCESR/runs
 
+echo "Set SC_RUNDIR to $SC_RUNDIR"
+
 # Paths based on site paths
 export PATH=${FW_DIR}/bin:${PATH}
 export LD_LIBRARY_PATH=${FW_DIR}/lib:${LD_LIBRARY_PATH}
@@ -31,8 +33,14 @@ export SC_RUNDIR=${PROJECTBASEDIR}/${USER}/${COBALT_JOBID}
 export SC_CONFIGPATH=${SC_RUNDIR}/etc
 export SC_CONFIGFILE="${SC_CONFIGPATH}/cobalt.conf"
 export SC_DAEMON_PATH=${FW_DIR}/bin
+
+# Subblock bits
+export COBALT_SUBLOCK_MINSIZE=1
+export COBALT_SUBLOCK_PARENTSIZE=128
+export COBALT_PARTNAME_CHILDREN="$(${FW_DIR}/bin/partadm.py -b ${COBALT_PARTNAME} | grep children)"
 export COBALT_CONFIG_FILES=${SC_CONFIGFILE}
 
+echo "Set SC_RUNDIR to $SC_RUNDIR"
 
 #
 mkdir -p ${SC_RUNDIR}/{log,etc,lock,state,run}
@@ -100,7 +108,11 @@ for component in ${COBALT_COMPONENTS}; do
     start_component $component
  
     if [ "$component" == "slp" ] ; then
-	sleep 30
+	sleep 20
+    fi
+
+    if [ "$component" == "bgqsystem" ] ; then
+	sleep 10
     fi
 
 done
