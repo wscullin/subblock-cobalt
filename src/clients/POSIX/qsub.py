@@ -30,6 +30,7 @@ Option with values:
 '-q','--queue',dest='queue',type='string',help='set queue name'
 '-M','--notify',dest='notify',type='string',help='set notification email address'
 '--env',dest='envs',type='string', help='Set env variables. Refer to man pages for more detail information.', callback=cb_env
+'-V',dest='autoenvs',type='string', help='Set env variables. Refer to man pages for more detail information.', callback=cb_autoenvs
 '-t','--time',dest='walltime',type='string',help='set walltime (minutes or HH:MM:SS). For max walltime enter 0.',callback=cb_time
 '-u','--umask',dest='umask',type='string',help='set umask: octal number default(022)',callback=cb_umask
 '-O','--outputprefix',dest='outputprefix',type='string',help='output prefix for error,output or debuglog files',callback=cb_path
@@ -42,6 +43,7 @@ Option with values:
 '--user_list','--run_users',dest='user_list',type='string',help='set user list (user1:user2:...:userN)',callback=cb_user_list
 '--jobname',dest='jobname',type='string', /
    help='Sets Jobname. If this option is not provided then Jobname will be set to whatever -o option specified.'
+
 
 The following options are only valid on IBM BlueGene architecture platforms:
 
@@ -59,9 +61,10 @@ import string
 import os
 import sys
 import signal
+import socket
 from Cobalt import client_utils
 from Cobalt.client_utils import \
-    cb_debug, cb_env, cb_nodes, cb_time, cb_umask, cb_path, cb_dep, \
+    cb_debug, cb_env, cb_autoenvs, cb_nodes, cb_time, cb_umask, cb_path, cb_dep, \
     cb_attrs, cb_user_list, cb_geometry, cb_gtzero, cb_mode, cb_interactive
 from Cobalt.arg_parser import ArgParse
 from Cobalt.Util import get_config_option, init_cobalt_config, sleep
@@ -169,22 +172,25 @@ def validate_args(parser, spec):
     else:
         spec['args'] = []
 
-    tag         = '#COBALT '
-    len_tag     = len(tag)
+    tags        = ('#COBALT','#PBS')
     fd          = open(cmd, 'r')
     line        = fd.readline()
     reparse    = False
     if line[0:2] == '#!':
-        line                = fd.readline()
-        new_argv            = []
-        while len(line) > len_tag:
-            if line[:len_tag] != tag:
-                break
-            if new_argv == []:
-                new_argv = ['--mode','script']
-                reparse   = True
-            new_argv += line[len_tag:].split()
-            line      = fd.readline()
+        scr                = fd.readlines()
+        new_argv           = ['--mode','script']
+        reparse            = True
+#        while len(line) > len_tag:
+#            print "DEBUG newargv: %s" %(new_argv)
+#            print "DEBUG line   : %s" %(line)
+#            if line[:len_tag] != tag:
+#                break
+#            if new_argv == []:
+#                new_argv = ['--mode','script']
+#                reparse   = True
+#            new_argv += line[len_tag:].split()
+#            line      = fd.readline()
+        [ new_argv.extend(line.split()[1:]) for line in scr for tag in tags if line.startswith(tag) ]
         sys.argv = [sys.argv[0]] + new_argv + sys.argv[1:]
     fd.close()
 
@@ -274,37 +280,54 @@ def update_spec(parser, opts, spec, opt2spec):
     # Get the key validated values into spec dictionary
     for opt in ['mode', 'proccount', 'nodecount']:
         spec[opt2spec[opt]] = opts[opt]
-    
+
     # Hack until the Cluster Systems get re-written.
     if parser.options.mode == 'interactive' and 'command' in opts and 'args' in opts:
         spec['command'] = opts['command']
         spec['args']    = opts['args']
 
+    #stamp the tty info, if it exists into the spec.
+    spec['ttysession'] = fetch_tty_session()
+    spec['submithost'] = socket.gethostname()
 
-def logjob(jobid, spec, logToConsole):
+def fetch_tty_session():
+    '''Grab the tty session stdout is attached to.  This will return None
+    if stdout is not going to a terminal.
+
+    '''
+    ttyname = None
+    try:
+        stdoutfh = sys.stdout.fileno()
+        ttyname = os.ttyname(stdoutfh)
+    except (OSError, IOError):
+        client_utils.logger.debug("fd %d not associated with a terminal device", stdoutfh)
+    return ttyname
+
+def logjob(jobid, spec, log_to_console, ttyname=None):
     """
     log job info
     """
     # log jobid to stdout
     if jobid:
-        if logToConsole:
+        if log_to_console:
             client_utils.logger.info(jobid)
         if spec.has_key('cobalt_log_file'):
             filename = spec['cobalt_log_file']
-            t = string.Template(filename)
-            filename = t.safe_substitute(jobid=jobid)
+            template = string.Template(filename)
+            filename = template.safe_substitute(jobid=jobid)
         else:
             filename = "%s/%s.cobaltlog" % (spec['outputdir'], jobid)
-
         try:
-            cobalt_log_file = open(filename, "a")
-            
-            print >> cobalt_log_file, "Jobid: %s" % jobid
-            print >> cobalt_log_file, "qsub %s" % (" ".join(sys.argv[1:]))
-            print >> cobalt_log_file, "%s submitted with cwd set to: %s" % ( client_utils.sec_to_str(time.time()), spec['cwd'])
-            cobalt_log_file.close()
-        except Exception, e:
-            client_utils.logger.error("WARNING: failed to create cobalt log file at: %s: %s", filename, e)
+            with open(filename, "a") as cobalt_log_file:
+                print >> cobalt_log_file, "Jobid: %s" % jobid
+                print >> cobalt_log_file, "qsub %s" % (" ".join(sys.argv[1:]))
+                print >> cobalt_log_file, ("%s submitted with cwd set to: %s" %
+                    (client_utils.sec_to_str(time.time()), spec['cwd']))
+                if ttyname is not None:
+                    print >> cobalt_log_file, ("jobid %d submitted from terminal %s" %
+                        (jobid, ttyname))
+        except IOError:
+            client_utils.logger.error("WARNING: failed to create cobalt log file at: %s: %s", filename, exc_info=True)
     else:
         client_utils.logger.error("failed to create the job.  Maybe a queue isn't there?")
 
@@ -350,7 +373,7 @@ def parse_options(parser, spec, opts, opt2spec, def_spec):
     opts['disable_preboot'] = not spec['script_preboot']
     return opt_count
 
-def run_interactive_job(jobid, user, disable_preboot):
+def run_interactive_job(jobid, user, disable_preboot, nodes, procs):
     """
     This will create the shell or ssh session for user
     """
@@ -361,7 +384,7 @@ def run_interactive_job(jobid, user, disable_preboot):
 
     deljob = True if impl == "cluster_system" else False
 
-    def start_session(loc, resid):
+    def start_session(loc, resid, nodes, procs):
         """
         start ssh or shell session
         """
@@ -372,6 +395,9 @@ def run_interactive_job(jobid, user, disable_preboot):
             os.putenv("COBALT_RESID", "%s" % (resid))
         os.putenv("COBALT_PARTNAME", loc)
         os.putenv("COBALT_BLOCKNAME", loc)
+        os.putenv("COBALT_JOBSIZE", str(procs))
+        os.putenv("COBALT_BLOCKSIZE",str(nodes))
+        os.putenv("COBALT_PARTSIZE", str(nodes))
         client_utils.logger.info("Opening interactive session to %s", loc)
         if deljob:
             os.system("/usr/bin/ssh -o \"SendEnv COBALT_NODEFILE COBALT_JOBID\" %s" % (loc))
@@ -400,7 +426,7 @@ def run_interactive_job(jobid, user, disable_preboot):
         location = response[0]['location']
         resid    = response[0]['resid']
         if state == 'running' and location:
-            start_session(location[0], resid)
+            start_session(location[0], resid, nodes, procs)
             break
         client_utils.logger.debug('Current State "%s" for job %s', str(state), str(jobid))
         sleep(2)
@@ -425,10 +451,10 @@ def run_job(parser, user, spec, opts):
 
         # If this is an interactive job, wait for it to start, then start user shell
         if parser.options.mode == 'interactive':
-            logjob(jobid, spec, False)
-            deljob = run_interactive_job(jobid, user,  opts['disable_preboot'])
+            logjob(jobid, spec, False, spec['ttysession'])
+            deljob = run_interactive_job(jobid, user,  opts['disable_preboot'], opts['nodecount'], opts['proccount'])
         else:
-            logjob(jobid, spec, True)
+            logjob(jobid, spec, True, spec['ttysession'])
     except Exception, e:
         client_utils.logger.error(e)
         exc_occurred = True
@@ -456,6 +482,7 @@ def main():
         ( cb_debug        , () ),
         ( cb_interactive  , () ),
         ( cb_env          , (opts,) ),
+        ( cb_autoenvs     , (opts,) ),
         ( cb_nodes        , (False,) ), # return string
         ( cb_gtzero       , (False,) ), # return string
         ( cb_time         , (False, False, False) ), # no delta time, minutes, return string
