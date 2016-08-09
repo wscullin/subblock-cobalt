@@ -6,7 +6,7 @@ PollingServiceLocator -- network-aware
 TimingServiceLocator -- timeout-based
 
 The service-location component provides registration and lookup functions
-to store the locations of dynamically addressed xmlrpc servers. It is used
+to store the locations of dynamically addressed jsonrpc servers. It is used
 directly by ComponentProxy to connect to components whose service location
 is not configured statically locally.
 
@@ -32,12 +32,12 @@ import logging
 import sys
 import socket
 import time
-from xmlrpclib import ServerProxy
+from jsonrpclib import ServerProxy
 
 import Cobalt.Logging
 from Cobalt.Data import Data, DataDict
 from Cobalt.Components.base import Component, exposed, automatic, query
-from Cobalt.Server import XMLRPCServer
+from Cobalt.Server import JSONRPCServer
 
 
 __all__ = [

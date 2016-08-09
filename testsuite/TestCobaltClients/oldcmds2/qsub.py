@@ -65,7 +65,7 @@ from Cobalt.client_utils import \
 from Cobalt.arg_parser import ArgParse
 from Cobalt.Util import get_config_option, init_cobalt_config, sleep
 from Cobalt.Proxy import ComponentProxy
-import xmlrpclib
+import jsonrpclib
 
 __revision__ = '$Revision: 559 $'
 __version__  = '$Version$'
@@ -390,7 +390,7 @@ def run_interactive_job(jobid, user, disable_preboot):
             if not response:
                 client_utils.logger.error("Jobid %s not found after submission", str(jobid))
                 sys.exit()
-        except (xmlrpclib.Fault, ComponentProxy) as fault:
+        except (jsonrpclib.Fault, ComponentProxy) as fault:
             # This can happen if the component is down so try again
             client_utils.logger.error('Error getting job info: %s. Try again', fault)
             sleep(2)

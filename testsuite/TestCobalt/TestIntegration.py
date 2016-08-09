@@ -1,6 +1,6 @@
 import os
 import sys
-import xmlrpclib
+import jsonrpclib
 import time
 import traceback
 import logging
@@ -49,11 +49,11 @@ class TestIntegration (object):
         # try adding a job to a queue that doesn't exist
         try:
             jobs = cqm.add_jobs([{'tag':"job", 'queue':"jonx"}])
-        except xmlrpclib.Fault:
+        except jsonrpclib.Fault:
             # trying to add a job to a queue that doesn't exist results in an xmlrpc Fault
             pass
         else:
-            assert not "Adding job to non-existent queue should raise xmlrpclib.Fault"
+            assert not "Adding job to non-existent queue should raise jsonrpclib.Fault"
             
         # get the list of available partitions and add them to the pool of managed partitions
         try:

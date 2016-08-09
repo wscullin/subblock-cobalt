@@ -1,7 +1,7 @@
 import os
 import socket
 import threading
-import xmlrpclib
+import jsonrpclib
 import ssl
 import ConfigParser
 
@@ -129,7 +129,7 @@ class TestXMLRPCServer_http (XMLRPCServerTester):
         XMLRPCServerTester.setup(self)
         self.server = XMLRPCServer(("localhost", 5900), register=False, keyfile=keypath, certfile=certpath, cafile=capath)
         self.server.register_instance(c)
-        self.proxy = xmlrpclib.ServerProxy("https://localhost:5900")
+        self.proxy = jsonrpclib.ServerProxy("https://localhost:5900")
     
     def test_secure (self):
         assert ssl.PROTOCOL_SSLv23 == self.server.ssl_protocol, self.server.ssl_protocol
@@ -147,7 +147,7 @@ class TestXMLRPCServer_http_auth (TestXMLRPCServer_http):
         self.server.require_auth = True
         self.server.credentials = dict(user="pass")
         self.server.register_instance(c)
-        self.proxy = xmlrpclib.ServerProxy("https://user:pass@localhost:5900")
+        self.proxy = jsonrpclib.ServerProxy("https://user:pass@localhost:5900")
     
     def test_require_auth (self):
         assert self.server.require_auth == \
@@ -167,7 +167,7 @@ class TestXMLRPCServer_http_auth (TestXMLRPCServer_http):
             self.server.RequestHandlerClass.credentials is None
     
     def test_ping_without_auth (self):
-        self.proxy = xmlrpclib.ServerProxy("https://localhost:5900")
+        self.proxy = jsonrpclib.ServerProxy("https://localhost:5900")
         try:
             self.test_ping()
         except:
@@ -176,7 +176,7 @@ class TestXMLRPCServer_http_auth (TestXMLRPCServer_http):
             assert not "Allowed unauthorized access."
     
     def test_ping_unknown_user (self):
-        self.proxy = xmlrpclib.ServerProxy("https://otheruser@localhost:5900")
+        self.proxy = jsonrpclib.ServerProxy("https://otheruser@localhost:5900")
         try:
             self.test_ping()
         except:
@@ -185,7 +185,7 @@ class TestXMLRPCServer_http_auth (TestXMLRPCServer_http):
             assert not "Allowed unauthorized access."
     
     def test_ping_wrong_password (self):
-        self.proxy = xmlrpclib.ServerProxy("https://user:wrongpassword@localhost:5900")
+        self.proxy = jsonrpclib.ServerProxy("https://user:wrongpassword@localhost:5900")
         try:
             self.test_ping()
         except:
@@ -202,7 +202,7 @@ class TestXMLRPCServer_https (XMLRPCServerTester):
         assert os.path.exists(keypath) and os.path.exists(certpath)
         self.server = XMLRPCServer(("localhost", 5900), keyfile=keypath, certfile=certpath, cafile=capath, register=False)
         self.server.register_instance(c)
-        self.proxy = xmlrpclib.ServerProxy("https://localhost:5900")
+        self.proxy = jsonrpclib.ServerProxy("https://localhost:5900")
     
     def test_secure (self):
         assert ssl.PROTOCOL_SSLv23 == self.server.ssl_protocol, self.server.ssl_protocol

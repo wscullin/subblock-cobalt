@@ -4,7 +4,7 @@
 __revision__ = '$Revision: 1221 $'
 __version__ = '$Version$'
 
-import sys, getopt, xmlrpclib
+import sys, getopt, jsonrpclib
 
 import Cobalt.Util
 from Cobalt.Proxy import ComponentProxy
@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
     try:
         parts = apply(func, (args, ))
-    except xmlrpclib.Fault, fault:
+    except jsonrpclib.Fault, fault:
         print "Command failure", fault
     except:
         print "strange failure"

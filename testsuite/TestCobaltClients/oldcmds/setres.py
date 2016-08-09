@@ -6,7 +6,7 @@ __version__ = '$Version$'
 
 import getopt, math, pwd, sys, time
 import os
-import xmlrpclib
+import jsonrpclib
 import Cobalt.Util
 from Cobalt.Proxy import ComponentProxy
 from Cobalt.Exceptions import ComponentLookupError
@@ -85,7 +85,7 @@ if __name__ == '__main__':
         except ValueError:
             print "res_id must be set to an integer value."
             raise SystemExit, 1
-        except xmlrpclib.Fault, flt:
+        except jsonrpclib.Fault, flt:
             print flt.faultString
             raise SystemExit, 1
 
@@ -100,7 +100,7 @@ if __name__ == '__main__':
         except ValueError:
             print "cycle_id must be set to an integer value."
             raise SystemExit, 1
-        except xmlrpclib.Fault, flt:
+        except jsonrpclib.Fault, flt:
             print flt.faultString
             raise SystemExit, 1
 
@@ -269,7 +269,7 @@ if __name__ == '__main__':
     try:
         print scheduler.add_reservations([spec], pwd.getpwuid(os.getuid())[0])
         print scheduler.check_reservations()
-    except xmlrpclib.Fault, flt:
+    except jsonrpclib.Fault, flt:
         if flt.faultCode == ComponentLookupError.fault_code:
             print "Couldn't contact the scheduler"
             sys.exit(1)

@@ -8,7 +8,7 @@ import os
 import sys
 import pwd
 import os.path
-import xmlrpclib
+import jsonrpclib
 import ConfigParser
 import logging
 import time
@@ -279,7 +279,7 @@ if __name__ == '__main__':
     except ComponentLookupError:
         print >> sys.stderr, "Failed to connect to queue manager"
         sys.exit(1)
-    except xmlrpclib.Fault, flt:
+    except jsonrpclib.Fault, flt:
         print >> sys.stderr, flt.faultString
         sys.exit(1)
 
@@ -330,7 +330,7 @@ if __name__ == '__main__':
                         print "%s set to %s" % (key, jobinfo[key])
                 elif jobinfo[key] != original_spec[key]:
                     print "%s changed from %s to %s" % (key, original_spec[key], jobinfo[key])
-        except xmlrpclib.Fault, flt:
+        except jsonrpclib.Fault, flt:
             print >> sys.stderr, flt.faultString
             response = True
 

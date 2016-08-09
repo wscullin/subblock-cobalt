@@ -9,12 +9,12 @@ load_config -- read configuration files
 
 __revision__ = '$Revision: 2130 $'
 
-from xmlrpclib import ServerProxy, Fault, _Method
+from jsonrpclib import ServerProxy, Fault, _Method
 from ConfigParser import SafeConfigParser, NoSectionError
 import logging
 import socket
 import time
-import xmlrpclib
+import jsonrpclib
 import urlparse
 import httplib
 import ssl
@@ -68,11 +68,11 @@ class RetryMethod(_Method):
                 retval = _Method.__call__(self, *args)
                 #print "returned: retval = %s" % retval
                 return retval 
-            except xmlrpclib.ProtocolError, err:
+            except jsonrpclib.ProtocolError, err:
                 log.error("Server failure: Protocol Error: %s %s" % \
                               (err.errcode, err.errmsg))
-                raise xmlrpclib.Fault(20, "Server Failure")
-            except xmlrpclib.Fault as fault:
+                raise jsonrpclib.Fault(20, "Server Failure")
+            except jsonrpclib.Fault as fault:
                 raise
             except socket.error, err:
                 if hasattr(err, 'errno') and err.errno == 336265218:
@@ -80,7 +80,7 @@ class RetryMethod(_Method):
                     break
                 if retry == 3:
                     log.error("Server failure: %s" % err)
-                    raise xmlrpclib.Fault(20, err)
+                    raise jsonrpclib.Fault(20, err)
             except CertificateError, ce:
                 log.error("Got unallowed commonName %s from server" \
                                % ce.commonName)
@@ -101,16 +101,16 @@ class RetryMethod(_Method):
                 #thrown Putting this here to avoid a circular dependnecy. --PMR
                 pass
 
-        raise xmlrpclib.Fault(20, "Server Failure")
+        raise jsonrpclib.Fault(20, "Server Failure")
 
 # sorry jon
-#xmlrpclib._Method = RetryMethod
+#jsonrpclib._Method = RetryMethod
 
 class SSLHTTPConnection(httplib.HTTPConnection):
     """Extension of HTTPConnection that implements SSL and related behaviors."""
 
     def __init__(self, host, port=None, strict=None, timeout=90, key=None,
-                 cert=None, ca=None, scns=None, protocol='xmlrpc/ssl'):
+                 cert=None, ca=None, scns=None, protocol='jsonrpc/ssl'):
         """Initializes the `httplib.HTTPConnection` object and stores security
         parameters
 
@@ -135,14 +135,14 @@ class SSLHTTPConnection(httplib.HTTPConnection):
             specify the same file as `cert` if using a file that
             contains both.  See
             http://docs.python.org/library/ssl.html#ssl-certificates
-            for details.  Required if using xmlrpc/ssl with client
+            for details.  Required if using jsonrpc/ssl with client
             certificate authentication.
         cert : string, optional
             The file system path to the local endpoint's SSL
             certificate.  May specify the same file as `cert` if using
             a file that contains both.  See
             http://docs.python.org/library/ssl.html#ssl-certificates
-            for details.  Required if using xmlrpc/ssl with client
+            for details.  Required if using jsonrpc/ssl with client
             certificate authentication.
         ca : string, optional
             The file system path to a set of concatenated certificate
@@ -152,7 +152,7 @@ class SSLHTTPConnection(httplib.HTTPConnection):
             List of acceptable server commonNames.  The peer cert's
             common name must appear in this list, otherwise the
             connect() call will throw a `CertificateError`.
-        protocol : {'xmlrpc/ssl', 'xmlrpc/tlsv1'}, optional
+        protocol : {'jsonrpc/ssl', 'jsonrpc/tlsv1'}, optional
             Communication protocol to use.
 
         """
@@ -168,7 +168,7 @@ class SSLHTTPConnection(httplib.HTTPConnection):
     def connect(self):
         """Initiates a connection using the ssl module."""
         rawsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        if self.protocol == 'xmlrpc/ssl':
+        if self.protocol == 'jsonrpc/ssl':
             ssl_protocol_ver = ssl.PROTOCOL_SSLv23
         else:
             log.error("Unknown protocol %s" % (self.protocol))
@@ -200,10 +200,10 @@ class SSLHTTPConnection(httplib.HTTPConnection):
         self.sock.closeSocket = True
 
 
-class XMLRPCTransport(xmlrpclib.Transport):
+class JSONRPCTransport(jsonrpclib.Transport):
     def __init__(self, key=None, cert=None, ca=None, scns=None, use_datetime=0, timeout=90):
-        if hasattr(xmlrpclib.Transport, '__init__'):
-            xmlrpclib.Transport.__init__(self, use_datetime)
+        if hasattr(jsonrpclib.Transport, '__init__'):
+            jsonrpclib.Transport.__init__(self, use_datetime)
         self.key = key
         self.cert = cert
         self.ca = ca
@@ -243,7 +243,7 @@ class XMLRPCTransport(xmlrpclib.Transport):
         errcode, errmsg, headers = h.getreply()
 
         if errcode != 200:
-            raise xmlrpclib.ProtocolError(host + handler, errcode, errmsg, headers)
+            raise jsonrpclib.ProtocolError(host + handler, errcode, errmsg, headers)
 
         self.verbose = verbose
         msglen = int(headers.dict['content-length'])
@@ -304,7 +304,7 @@ def ComponentProxy(component_name, **kwargs):
         certpath = None
         capath = None
 
-    ssl_trans = XMLRPCTransport(keypath, certpath, capath, timeout=90)    
+    ssl_trans = JSONRPCTransport(keypath, certpath, capath, timeout=90)    
     
     if component_name in local_components:
         return LocalProxy(local_components[component_name])

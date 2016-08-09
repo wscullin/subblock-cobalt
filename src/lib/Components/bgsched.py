@@ -7,7 +7,7 @@ import logging
 import sys
 import time
 import ConfigParser
-import xmlrpclib
+import jsonrpclib
 import math
 
 import Cobalt.Logging, Cobalt.Util
@@ -778,7 +778,7 @@ class BGSched (Component):
         for item in [self.jobs, self.queues]:
             try:
                 item.Sync()
-            except (ComponentLookupError, xmlrpclib.Fault):
+            except (ComponentLookupError, jsonrpclib.Fault):
                 # the ForeignDataDicts already include FailureMode stuff
                 pass
         # print "took %f seconds for sync_data" % (time.time() - started, )

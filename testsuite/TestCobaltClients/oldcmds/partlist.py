@@ -8,7 +8,7 @@ import sys, operator
 import time
 from optparse import OptionParser
 import Cobalt.Util
-import xmlrpclib
+import jsonrpclib
 from Cobalt.Proxy import ComponentProxy
 from Cobalt.Exceptions import ComponentLookupError, NotSupportedError
 import Cobalt.Util
@@ -47,7 +47,7 @@ if __name__ == '__main__':
             'backfill_time':"*", 'draining':"*"}]
     try:
         parts = system.get_partitions(spec)
-    except xmlrpclib.Fault, flt:
+    except jsonrpclib.Fault, flt:
         if flt.faultCode == NotSupportedError.fault_code:
             print "incompatible with cluster support:  try nodelist"
             raise SystemExit, 1

@@ -7,7 +7,7 @@ __version__ = '$Version$'
 import getopt, sys
 import os
 import pwd
-import xmlrpclib
+import jsonrpclib
 
 from Cobalt.Proxy import ComponentProxy
 from Cobalt.Exceptions import ComponentLookupError
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     spec = [{'name': arg} for arg in args]
     try:
         result = scheduler.get_reservations(spec)
-    except xmlrpclib.Fault, flt:
+    except jsonrpclib.Fault, flt:
         if flt.faultCode == 1:
             print "Error communicating with scheduler"
             sys.exit(1)
@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     try:
         result = scheduler.release_reservations(spec, pwd.getpwuid(os.getuid())[0])
-    except xmlrpclib.Fault, flt:
+    except jsonrpclib.Fault, flt:
         if flt.faultCode == 1:
             print "Error communicating with scheduler"
             sys.exit(1)

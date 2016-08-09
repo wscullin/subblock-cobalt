@@ -4,7 +4,7 @@
 __revision__ = '$Revision: 1978 $'
 __version__ = '$Version$'
 
-import sys, xmlrpclib
+import sys, jsonrpclib
 import Cobalt.Logging, Cobalt.Util
 import getpass
 import os
@@ -108,7 +108,7 @@ if __name__ == '__main__':
         except ValueError:
             print "The new jobid must be an integer"
             raise SystemExit, 1
-        except xmlrpclib.Fault, flt:
+        except jsonrpclib.Fault, flt:
             print flt.faultString
             raise SystemExit, 1
     elif opts['savestate']:
@@ -130,7 +130,7 @@ if __name__ == '__main__':
                     response = cqm.del_jobs(spec, True, whoami)
                 else:
                     response = cqm.del_jobs(spec, False, whoami)
-            except xmlrpclib.Fault, flt:
+            except jsonrpclib.Fault, flt:
                 if flt.faultCode == JobDeleteError.fault_code:
                     args = eval(flt.faultString)
                     exc = JobDeleteError(*args)
@@ -147,7 +147,7 @@ if __name__ == '__main__':
         try:
             response = cqm.run_jobs(spec, location.split(':'), whoami)
 
-        except xmlrpclib.Fault, flt:
+        except jsonrpclib.Fault, flt:
             if flt.faultCode == JobRunError.fault_code:
                 args = eval(flt.faultString)
                 exc = JobRunError(*args)
@@ -196,7 +196,7 @@ if __name__ == '__main__':
             datatoprint = [('Deleted Queues', )] + \
                           [(q.get('name'), ) for q in response]
             Cobalt.Util.print_tabular(datatoprint)
-        except xmlrpclib.Fault, flt:
+        except jsonrpclib.Fault, flt:
             print flt.faultString
     elif opts['setq']:
         props = [p.split('=') for p in opts['setq'].split(' ')]
@@ -226,7 +226,7 @@ if __name__ == '__main__':
             updates.update({prop.lower():val})
         try:
             response = cqm.set_queues(spec, updates, whoami)
-        except xmlrpclib.Fault, flt:
+        except jsonrpclib.Fault, flt:
             if flt.faultCode == QueueError.fault_code:
                 print flt.faultString
                 sys.exit(1)
@@ -252,7 +252,7 @@ if __name__ == '__main__':
             raise SystemExit, 1
         try:
             response = cqm.preempt_jobs(spec, whoami, opts['force'])
-        except xmlrpclib.Fault, flt:
+        except jsonrpclib.Fault, flt:
             if flt.faultCode == JobPreemptionError.fault_code:
                 args = eval(flt.faultString)
                 exc = JobPreemptionError(*args)
@@ -301,7 +301,7 @@ if __name__ == '__main__':
             response = []
             if updates:
                 response = cqm.set_jobs(spec, updates, whoami)
-        except xmlrpclib.Fault, flt:
+        except jsonrpclib.Fault, flt:
             response = []
             if flt.faultCode == 30 or flt.faultCode == 42:
                 print flt.faultString

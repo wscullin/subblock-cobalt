@@ -1,18 +1,18 @@
-"""Cobalt component XML-RPC server."""
+"""Cobalt component JSON-RPC server."""
 
 __revision__ = '$Revision: 2179 $'
 
 __all__ = [
-    "TCPServer", "XMLRPCRequestHandler", "XMLRPCServer",
+    "TCPServer", "JSONRPCRequestHandler", "JSONRPCServer",
     "find_intended_location",
 ]
 
 import sys
 import os
-import xmlrpclib
+import jsonrpclib
 import socket
 import SocketServer
-import SimpleXMLRPCServer
+from jsonrpclib import SimpleJSONRPCServer
 import base64
 import inspect
 import signal
@@ -57,10 +57,10 @@ def find_intended_location (component, config_files=None):
 
 
 
-class CobaltXMLRPCDispatcher (SimpleXMLRPCServer.SimpleXMLRPCDispatcher):
-    logger = logging.getLogger("Cobalt.Server.CobaltXMLRPCDispatcher")
+class CobaltJSONRPCDispatcher (SimpleJSONRPCServer.SimpleJSONRPCDispatcher):
+    logger = logging.getLogger("Cobalt.Server.CobaltJSONRPCDispatcher")
     def __init__ (self, allow_none, encoding):
-        SimpleXMLRPCServer.SimpleXMLRPCDispatcher.__init__(self,
+        SimpleJSONRPCServer.SimpleJSONRPCDispatcher.__init__(self,
                                                            allow_none,
                                                            encoding)
         self.allow_none = allow_none
@@ -68,7 +68,7 @@ class CobaltXMLRPCDispatcher (SimpleXMLRPCServer.SimpleXMLRPCDispatcher):
 
     def _marshaled_dispatch (self, data):
         method_func = None
-        params, method = xmlrpclib.loads(data)
+        params, method = jsonrpclib.loads(data)
         #print method, "\n" ,params
 
         try:
@@ -76,17 +76,17 @@ class CobaltXMLRPCDispatcher (SimpleXMLRPCServer.SimpleXMLRPCDispatcher):
             #time.sleep(120)
             response = self.instance._dispatch(method, params, self.funcs)
             response = (response,)
-            raw_response = xmlrpclib.dumps(response, methodresponse=1,
+            raw_response = jsonrpclib.dumps(response, methodresponse=1,
                                            allow_none=self.allow_none,
                                            encoding=self.encoding)
-        except xmlrpclib.Fault, fault:
-            raw_response = xmlrpclib.dumps(fault,
+        except jsonrpclib.Fault, fault:
+            raw_response = jsonrpclib.dumps(fault,
                                            allow_none=self.allow_none,
                                            encoding=self.encoding)
         except:
             # report exception back to server
-            raw_response = xmlrpclib.dumps(
-                xmlrpclib.Fault(1, "%s:%s" % (sys.exc_type, sys.exc_value)),
+            raw_response = jsonrpclib.dumps(
+                jsonrpclib.Fault(1, "%s:%s" % (sys.exc_type, sys.exc_value)),
                 allow_none=self.allow_none, encoding=self.encoding)
         return raw_response
 
@@ -108,7 +108,7 @@ class SSLServer (SocketServer.TCPServer, object):
     logger = logging.getLogger("Cobalt.Server.TCPServer")
 
     def __init__(self, server_address, RequestHandlerClass, keyfile=None,
-                 certfile=None, reqCert=False, ca=None, timeout=None, protocol='xmlrpc/ssl'):
+                 certfile=None, reqCert=False, ca=None, timeout=None, protocol='jsonrpc/ssl'):
 
         """Initialize the SSL-TCP server.
 
@@ -154,9 +154,9 @@ class SSLServer (SocketServer.TCPServer, object):
             self.mode = ssl.CERT_OPTIONAL
         else:
             self.mode = ssl.CERT_NONE
-        if protocol == 'xmlrpc/ssl':
+        if protocol == 'jsonrpc/ssl':
             self.ssl_protocol = ssl.PROTOCOL_SSLv23
-        elif protocol == 'xmlrpc/tlsv1':
+        elif protocol == 'jsonrpc/tlsv1':
             self.ssl_protocol = ssl.PROTOCOL_TLSv1
         else:
             self.logger.error("Unknown protocol %s" % (protocol))
@@ -182,9 +182,9 @@ class SSLServer (SocketServer.TCPServer, object):
     url = property(_get_url)
 
 
-class XMLRPCRequestHandler (SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
+class JSONRPCRequestHandler (SimpleJSONRPCServer.SimpleJSONRPCRequestHandler):
     
-    """Component XML-RPC request handler.
+    """Component JSON-RPC request handler.
     
     Adds support for HTTP authentication.
     
@@ -195,7 +195,7 @@ class XMLRPCRequestHandler (SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
     authenticate -- prompt a check of a client's provided username and password
     handle_one_request -- handle a single rpc (optionally authenticating)
     """
-    logger = logging.getLogger("Cobalt.Server.XMLRPCRequestHandler")
+    logger = logging.getLogger("Cobalt.Server.JSONRPCRequestHandler")
     
     class CouldNotAuthenticate (Exception):
         """Client did not present acceptible authentication information."""
@@ -236,7 +236,7 @@ class XMLRPCRequestHandler (SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
         Optionally check HTTP authentication when parsing.
 
         """
-        if not SimpleXMLRPCServer.SimpleXMLRPCRequestHandler.parse_request(self):
+        if not SimpleJSONRPCServer.SimpleJSONRPCRequestHandler.parse_request(self):
             return False
         if self.require_auth:
             try:
@@ -249,39 +249,39 @@ class XMLRPCRequestHandler (SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
                 return False
         return True
 
-    ### FIXME need to override do_POST here
-    def do_POST(self):
-        try:
-            max_chunk_size = 10*1024*1024
-            size_remaining = int(self.headers["content-length"])
-            L = []
-            while size_remaining:
-                chunk_size = min(size_remaining, max_chunk_size)
-                L.append(self.rfile.read(chunk_size))
-                size_remaining -= len(L[-1])
-            data = ''.join(L)
+###    ### FIXME need to override do_POST here
+###    def do_POST(self):
+###        try:
+###            max_chunk_size = 10*1024*1024
+###            size_remaining = int(self.headers["content-length"])
+###            L = []
+###            while size_remaining:
+###                chunk_size = min(size_remaining, max_chunk_size)
+###                L.append(self.rfile.read(chunk_size))
+###                size_remaining -= len(L[-1])
+###            data = ''.join(L)
+###
+###            response = self.server._marshaled_dispatch(data)
+###        except: 
+###            raise
+###            self.send_response(500)
+###            self.end_headers()
+###        else:
+###            # got a valid XML RPC response
+###            self.send_response(200)
+###            self.send_header("Content-type", "text/xml")
+###            self.send_header("Content-length", str(len(response)))
+###            self.end_headers()
+###            self.wfile.write(response)
+###
+###            # shut down the connection
+###            self.wfile.flush()
+###            self.connection.shutdown(1)
+###   
 
-            response = self.server._marshaled_dispatch(data)
-        except: 
-            raise
-            self.send_response(500)
-            self.end_headers()
-        else:
-            # got a valid XML RPC response
-            self.send_response(200)
-            self.send_header("Content-type", "text/xml")
-            self.send_header("Content-length", str(len(response)))
-            self.end_headers()
-            self.wfile.write(response)
-
-            # shut down the connection
-            self.wfile.flush()
-            self.connection.shutdown(1)
-   
-
-class BaseXMLRPCServer (SSLServer, CobaltXMLRPCDispatcher, object):
+class BaseJSONRPCServer (SSLServer, CobaltJSONRPCDispatcher, object):
     
-    """Component XMLRPCServer.
+    """Component JSONRPCServer.
     
     Methods:
     serve_daemon -- serve_forever in a daemonized process
@@ -305,7 +305,7 @@ class BaseXMLRPCServer (SSLServer, CobaltXMLRPCDispatcher, object):
                   logRequests=False,
                   register=True, allow_none=True, encoding=None, cafile=None):
         
-        """Initialize the XML-RPC server.
+        """Initialize the JSON-RPC server.
         
         Arguments:
         server_address -- address to bind to the server
@@ -320,10 +320,10 @@ class BaseXMLRPCServer (SSLServer, CobaltXMLRPCDispatcher, object):
         encoding -- encoding to use for xml-rpc (default UTF-8)
         """
         
-        CobaltXMLRPCDispatcher.__init__(self, allow_none, encoding)
+        CobaltJSONRPCDispatcher.__init__(self, allow_none, encoding)
         
         if not RequestHandlerClass:
-            class RequestHandlerClass (XMLRPCRequestHandler):
+            class RequestHandlerClass (JSONRPCRequestHandler):
                 """A subclassed request handler to prevent class-attribute conflicts."""
 
         SSLServer.__init__(self,
@@ -339,7 +339,7 @@ class BaseXMLRPCServer (SSLServer, CobaltXMLRPCDispatcher, object):
 
     
     def register_instance (self, instance, *args, **kwargs):
-        CobaltXMLRPCDispatcher.register_instance(self, instance, *args, **kwargs)
+        CobaltJSONRPCDispatcher.register_instance(self, instance, *args, **kwargs)
         try:
             name = instance.name
         except AttributeError:
@@ -473,7 +473,7 @@ class BaseXMLRPCServer (SSLServer, CobaltXMLRPCDispatcher, object):
         return args
 
 
-class XMLRPCServer (SocketServer.ThreadingMixIn, BaseXMLRPCServer): 
+class JSONRPCServer (SocketServer.ThreadingMixIn, BaseJSONRPCServer): 
     
     def __init__ (self, server_address, RequestHandlerClass=None,
                   keyfile=None, certfile=None,
@@ -482,7 +482,7 @@ class XMLRPCServer (SocketServer.ThreadingMixIn, BaseXMLRPCServer):
                   register=True, allow_none=True, encoding=None, cafile=None):
         
         
-        BaseXMLRPCServer.__init__(self, server_address, RequestHandlerClass, keyfile, 
+        BaseJSONRPCServer.__init__(self, server_address, RequestHandlerClass, keyfile, 
                                   certfile, timeout, logRequests, register, allow_none, encoding, cafile=cafile)
         
         self.task_thread = threading.Thread(target=self._tasks_thread)

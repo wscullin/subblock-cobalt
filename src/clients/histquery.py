@@ -3,7 +3,7 @@
 
 import sys
 import time
-import xmlrpclib
+import jsonrpclib
 import socket
 import optparse
 from optparse import Option

@@ -14,12 +14,12 @@ import getopt
 import logging
 import time
 import threading
-import xmlrpclib
+import jsonrpclib
 
 import Cobalt
 import Cobalt.Proxy
 import Cobalt.Logging
-from Cobalt.Server import BaseXMLRPCServer, XMLRPCServer, find_intended_location
+from Cobalt.Server import BaseJSONRPCServer, JSONRPCServer, find_intended_location
 from Cobalt.Data import get_spec_fields
 from Cobalt.Exceptions import NoExposedMethod
 from Cobalt.Statistics import Statistics
@@ -139,10 +139,10 @@ def run_component (component_cls, argv=None, register=True, state_name=False,
         capath = None
 
     if single_threaded:
-        server = BaseXMLRPCServer(location, keyfile=keypath, certfile=certpath, 
+        server = BaseJSONRPCServer(location, keyfile=keypath, certfile=certpath, 
                           cafile=capath, register=register, timeout=time_out)
     else:
-        server = XMLRPCServer(location, keyfile=keypath, certfile=certpath,
+        server = JSONRPCServer(location, keyfile=keypath, certfile=certpath,
                           cafile=capath, register=register, timeout=time_out)
 
     #Two components of the same type cannot be allowed to run at the same time.
@@ -214,8 +214,8 @@ class Component (object):
 
     """Base component.
 
-    Intended to be served as an instance by Cobalt.Component.XMLRPCServer
-    >>> server = Cobalt.Component.XMLRPCServer(location, keyfile)
+    Intended to be served as an instance by Cobalt.Component.JSONRPCServer
+    >>> server = Cobalt.Component.JSONRPCServer(location, keyfile)
     >>> component = Cobalt.Component.Component()
     >>> server.serve_instance(component)
 
@@ -341,9 +341,9 @@ class Component (object):
         return func
 
     def _dispatch (self, method, args, dispatch_dict):
-        """Custom XML-RPC dispatcher for components.
+        """Custom JSON-RPC dispatcher for components.
 
-        method -- XML-RPC method name
+        method -- JSON-RPC method name
         args -- tuple of paramaters to method
         """
         if method in dispatch_dict:
@@ -354,7 +354,7 @@ class Component (object):
             except Exception, e:
                 if getattr(e, "log", True):
                     self.logger.error(e, exc_info=True)
-                raise xmlrpclib.Fault(getattr(e, "fault_code", 1), str(e))
+                raise jsonrpclib.Fault(getattr(e, "fault_code", 1), str(e))
 
         need_to_lock = not getattr(method_func, 'locking', False)
         if need_to_lock:
@@ -365,7 +365,7 @@ class Component (object):
         except Exception, e:
             if getattr(e, "log", True):
                 self.logger.error(e, exc_info=True)
-            raise xmlrpclib.Fault(getattr(e, "fault_code", 1), str(e))
+            raise jsonrpclib.Fault(getattr(e, "fault_code", 1), str(e))
         finally:
             method_done = time.time()
             if not need_to_lock:
@@ -382,7 +382,7 @@ class Component (object):
 
     @exposed
     def listMethods (self):
-        """Custom XML-RPC introspective method list."""
+        """Custom JSON-RPC introspective method list."""
         return [
             name for name, func in inspect.getmembers(self, callable)
             if getattr(func, "exposed", False)
@@ -390,7 +390,7 @@ class Component (object):
 
     @exposed
     def methodHelp (self, method_name):
-        """Custom XML-RPC introspective method help.
+        """Custom JSON-RPC introspective method help.
 
         Arguments:
         method_name -- name of method to get help on

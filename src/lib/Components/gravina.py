@@ -17,7 +17,7 @@ import tempfile
 import time
 import thread
 import threading
-import xmlrpclib
+import jsonrpclib
 import ConfigParser
 import traceback
 import pybgsched
@@ -663,7 +663,7 @@ class BGSystem (BGBaseSystem):
                 retval = ComponentProxy('system_script_forker').fork(
                         ['/bgsys/drivers/ppcfloor/hlcs/bin/kill_job', '%d'%bg_job.getId() ], 'bg_system_cleanup', '%s cleanup:'% bg_job.getId())
                 self.logger.info("killing backend job: %s for block %s", bg_job.getId(), block_name)
-            except xmlrpclib.Fault:
+            except jsonrpclib.Fault:
                 self.logger.warning("XMLRPC Error while killing backend job: %s for block %s, will retry.", bg_job.getId(), block_name)
             except:
                 self.logger.critical("Unknown Error while killing backend job: %s for block %s, will retry.", bg_job.getId(), block_name)
@@ -1142,13 +1142,13 @@ class BGSystem (BGBaseSystem):
                                 pgroup.label, pgroup.forker)
                         self.reserve_resources_until(pgroup.location, None, pgroup.jobid)
                         pgroup.exit_status = 255
-                except (ComponentLookupError, xmlrpclib.Fault), e:
+                except (ComponentLookupError, jsonrpclib.Fault), e:
                     self.logger.error("%s: failed to contact the %s component", pgroup.label, pgroup.forker)
                     # do not release the resources; instead re-raise the exception and allow cqm to the opportunity to retry
                     # until the job has exhausted its maximum alloted time
                     #del self.process_groups[pgroup.id]
                     continue #do we need to start the whole thing again (retry state from cqm?)
-                except (ComponentLookupError, xmlrpclib.Fault), e:
+                except (ComponentLookupError, jsonrpclib.Fault), e:
                     self.logger.error("%s: a fault occurred while attempting to start the process group using the %s "
                             "component", pgroup.label, pgroup.forker)
                         # do not release the resources; instead re-raise the exception and allow cqm to the opportunity to retry

@@ -4,7 +4,7 @@
 __revision__ = '$Revision: 849 $'
 __version__ = '$Version$'
 
-import sys, getopt, xmlrpclib
+import sys, getopt, jsonrpclib
 import Cobalt.Proxy, Cobalt.Util
 
 helpmsg = '''Usage: partadm.py [-a] [-d] [-s size] part1 part2 (add or del)
@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     try:
         parts = sched.get_partitions(specs) #apply(func, args)
-    except xmlrpclib.Fault, fault:
+    except jsonrpclib.Fault, fault:
         print "Command failure", fault
     except:
         print "strange failure"

@@ -12,7 +12,7 @@ import sys
 import pwd
 import os.path
 import os
-import xmlrpclib
+import jsonrpclib
 import ConfigParser
 import re
 import logging
@@ -147,7 +147,7 @@ def print_usage(parser, errmsg = "No arguments or options provided"):
 
 def component_call(comp_name, defer, func_name, args, exit_on_error = True):
     """
-    This function is calls a function on another component and handle XML RPC faults
+    This function is calls a function on another component and handle JSON RPC faults
     gracefully, and other faults with something other than a traceback.
     The default is to EXIT ON ERROR.
 
@@ -190,8 +190,8 @@ def component_call(comp_name, defer, func_name, args, exit_on_error = True):
     try:
         func = getattr(comp,func_name)
         retVal = func(*args)
-    except xmlrpclib.Fault, fault:
-        component_error("XMLRPC failure %s in %s.%s\n", fault, comp_name, func_name)
+    except jsonrpclib.Fault, fault:
+        component_error("JSONRPC failure %s in %s.%s\n", fault, comp_name, func_name)
     except Exception, e:
         component_error("Following exception occured while trying to execute %s.%s: %s\n", comp_name, func_name, e)
 

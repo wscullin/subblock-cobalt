@@ -4,7 +4,7 @@
 __revision__ = '$Revision: 613 $'
 __version__ = '$Version$'
 
-import sys, xmlrpclib, xml.dom.minidom
+import sys, jsonrpclib, xml.dom.minidom
 import Cobalt.Logging, Cobalt.Proxy, Cobalt.Util, Cobalt.Data, Cobalt.Component
 
 __helpmsg__ = 'Usage: cqdump [--dump] [--load xmlfile]'
@@ -59,12 +59,12 @@ def maketree(xmlnode, elements):
             newtype = "int"
         elif isinstance(elements.get(attr), list):
             newtype = "list"
-            elements[attr] = xmlrpclib.dumps(tuple(elements.get(attr)))        
+            elements[attr] = jsonrpclib.dumps(tuple(elements.get(attr)))        
         elif isinstance(elements.get(attr), float):
             newtype = "float"
         elif isinstance(elements.get(attr), dict):
             newtype = "dict"
-            elements[attr] = xmlrpclib.dumps(tuple(elements.get(attr).iteritems()))
+            elements[attr] = jsonrpclib.dumps(tuple(elements.get(attr).iteritems()))
         else:
             newtype = "str"
         newattr.setAttribute("type", newtype)
@@ -92,12 +92,12 @@ def makedict(xmlnodes):
                 element_data = float(element_data)
             elif attr_type == 'dict':
                 attrdict = {}
-                for x,y in xmlrpclib.loads(element_data)[0]:
+                for x,y in jsonrpclib.loads(element_data)[0]:
                     attrdict.update({x:y})
                 element_data = attrdict
             elif attr_type == 'list':
                 # load list data using xmlrpc marshalling
-                element_data = list(xmlrpclib.loads(element_data)[0])
+                element_data = list(jsonrpclib.loads(element_data)[0])
             newdict.update({attr.nodeName:element_data})
         nodelist.append(newdict)
     return nodelist
@@ -136,7 +136,7 @@ if __name__ == '__main__':
 #             cobalt_xml.appendChild(next_jobid_xml)
 #             next_jobid_text = doc.createTextNode(str(next_jobid))
 #             next_jobid_xml.appendChild(next_jobid_text)
-#         except xmlrpclib.Fault:
+#         except jsonrpclib.Fault:
 #             #cqm version must not have GetJobID()
 #             pass
 

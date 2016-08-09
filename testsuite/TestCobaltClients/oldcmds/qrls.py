@@ -5,7 +5,7 @@ __revision__ = '$Revision: 345 $'
 __version__ = '$Version$'
 
 import getopt, os, pwd, sys, time
-import xmlrpclib
+import jsonrpclib
 import Cobalt.Logging, Cobalt.Util
 import optparse
 from Cobalt.Proxy import ComponentProxy
@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
     try:
         check_response = cqm.get_jobs(check_specs)
-    except xmlrpclib.Fault, flt:
+    except jsonrpclib.Fault, flt:
         print flt.faultString
         raise SystemExit, 1
 
@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
     try:
         update_response = cqm.set_jobs(update_specs, updates, user)
-    except xmlrpclib.Fault, flt:
+    except jsonrpclib.Fault, flt:
         print flt.faultString
         raise SystemExit, 1
     

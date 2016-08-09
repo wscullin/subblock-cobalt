@@ -78,7 +78,7 @@ import sys
 import time
 import math
 import types
-import xmlrpclib
+import jsonrpclib
 import ConfigParser
 import signal
 import thread
@@ -798,7 +798,7 @@ class Job (StateMachine):
         try:
             self._sm_log_info("instructing the system component to send signal %s" % (self.__signaling_info.signal,))
             pgroup = ComponentProxy("system").signal_process_groups([{'id':self.taskid}], self.__signaling_info.signal)
-        except (ComponentLookupError, xmlrpclib.Fault), e:
+        except (ComponentLookupError, jsonrpclib.Fault), e:
             #
             # BRT: will a ComponentLookupError ever be raised directly or will 
             # it always be buried in a XML-RPC fault?
@@ -871,7 +871,7 @@ class Job (StateMachine):
                 self._sm_log_error("process group creation failed", 
                         cobalt_log = True)
                 return Job.__rc_pg_create
-        except (ComponentLookupError, xmlrpclib.Fault), e:
+        except (ComponentLookupError, jsonrpclib.Fault), e:
             self._sm_log_warn("failed to execute the task (%s); retry pending" % (e,))
             return Job.__rc_retry
         except:
@@ -894,7 +894,7 @@ class Job (StateMachine):
 
             else:
                 self._sm_log_warn("system component was unable to locate the task; exit status not obtained")
-        except (ComponentLookupError, xmlrpclib.Fault), e:
+        except (ComponentLookupError, jsonrpclib.Fault), e:
             self._sm_log_warn("failed to communicate with the system component (%s); retry pending" % (e,))
             return Job.__rc_retry
         except:
@@ -909,7 +909,7 @@ class Job (StateMachine):
         try:
             ComponentProxy("system").reserve_resources_until(self.location, None, self.jobid)
             return Job.__rc_success
-        except (ComponentLookupError, xmlrpclib.Fault), e:
+        except (ComponentLookupError, jsonrpclib.Fault), e:
             self._sm_log_warn("failed to communicate with the system component (%s); retry pending" % (e,))
             return Job.__rc_retry
         except:
@@ -1537,7 +1537,7 @@ class Job (StateMachine):
                 logger.error("%s: Error connecting to forker. Retrying",
                         label)
                 raise ComponentLookupError
-            except xmlrpclib.Fault:
+            except jsonrpclib.Fault:
                 logger.error("%s: Failure in exectuing script: %s",
                         label, script)
                 script_ids.append(None)
@@ -3578,7 +3578,7 @@ class QueueManager(Component):
             pgroups = ComponentProxy("system").get_process_groups(
                     [{'id':'*', 'state':'running'}])
             self.component_lock_acquire()
-        except (ComponentLookupError, xmlrpclib.Fault):
+        except (ComponentLookupError, jsonrpclib.Fault):
             self.component_lock_acquire()
             logger.error("Failed to communicate with the system component when"
                 " attempting to acquire a list of active process groups")
@@ -3859,7 +3859,7 @@ class QueueManager(Component):
                 res_success = ComponentProxy("system").reserve_resources_until(
                     nodelist, time.time() + ((float(job.walltime) + float(job.force_kill_delay) + 1.0) * 60.0),
                     job.jobid)
-            except xmlrpclib.Fault, flt:
+            except jsonrpclib.Fault, flt:
                 raise
             if not res_success:
                 raise ResourceReservationFailure("%s/%s: Unable to reserve "\

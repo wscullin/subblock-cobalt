@@ -5,7 +5,7 @@ __revision__ = '$Revision: 1981 $'
 __version__ = '$Version$'
 
 import sys
-import xmlrpclib
+import jsonrpclib
 import os
 import optparse
 import pwd
@@ -94,7 +94,7 @@ def component_call(func, args):
 
     try:
         parts = apply(func, args)
-    except xmlrpclib.Fault, fault:
+    except jsonrpclib.Fault, fault:
         print "Command failure", fault
     except:
         print "Non-RPC Fault failure"

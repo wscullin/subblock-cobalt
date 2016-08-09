@@ -27,7 +27,7 @@ from Cobalt.Components.simulator import Simulator
 from Cobalt.Data import Data, DataList
 from Cobalt.Exceptions import ComponentLookupError
 from Cobalt.Proxy import ComponentProxy, local_components
-from Cobalt.Server import XMLRPCServer, find_intended_location
+from Cobalt.Server import JSONRPCServer, find_intended_location
 
 REMOTE_QUEUE_MANAGER = "cluster-queue-manager"
 

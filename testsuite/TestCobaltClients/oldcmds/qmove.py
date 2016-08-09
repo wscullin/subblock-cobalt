@@ -4,7 +4,7 @@
 __revision__ = '$Revision: 345 $'
 __version__ = '$Version$'
 
-import getopt, os, pwd, sys, time, xmlrpclib
+import getopt, os, pwd, sys, time, jsonrpclib
 import ConfigParser
 import Cobalt.Logging, Cobalt.Util
 from Cobalt.Proxy import ComponentProxy
@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     try:
         jobdata = cqm.get_jobs(spec)
-    except xmlrpclib.Fault, flt:
+    except jsonrpclib.Fault, flt:
         print flt.faultString
         raise SystemExit, 1
 
@@ -82,7 +82,7 @@ if __name__ == '__main__':
         try:
             [job] = cqm.set_jobs([original_spec], jobinfo, user)
             response.append("moved job %d to queue '%s'" % (job.get('jobid'), job.get('queue')))
-        except xmlrpclib.Fault, flt:
+        except jsonrpclib.Fault, flt:
             response.append(flt.faultString)
 
     if not response:

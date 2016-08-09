@@ -8,7 +8,7 @@ import os
 import sys
 import pwd
 import os.path
-import xmlrpclib
+import jsonrpclib
 import ConfigParser
 import re
 import logging

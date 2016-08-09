@@ -8,7 +8,7 @@ from Cobalt.Util import print_tabular
 
 import sys
 import time
-import xmlrpclib
+import jsonrpclib
 import socket
 
 import Cobalt.Logging
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     except socket.error, e:
         print >> sys.stderr, "unable to connect to service-locator (%s)" % (e)
         sys.exit(1)
-    except xmlrpclib.Fault, e:
+    except jsonrpclib.Fault, e:
         print >> sys.stderr, "RPC fault (%s)" % (e)
         sys.exit(1)
     

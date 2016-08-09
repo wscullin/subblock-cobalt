@@ -4,7 +4,7 @@
 __revision__ = '$Revision: 619 $'
 __version__ = '$Version$'
 
-import sys, xmlrpclib
+import sys, jsonrpclib
 import Cobalt.Logging, Cobalt.Util
 import getpass
 from Cobalt.Proxy import ComponentProxy

@@ -6,7 +6,7 @@ __version__ = '$Version$'
 
 import math, os, re, sys, time, types, ConfigParser
 import Cobalt.Proxy, Cobalt.Util
-import xmlrpclib
+import jsonrpclib
 
 if __name__ == '__main__':
     if '--version' in sys.argv:
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     try:
     	next_job_id = cqm.get_next_id()
-    except xmlrpclib.Fault:
+    except jsonrpclib.Fault:
 	next_job_id = -1
 
     def my_cmp(left, right):

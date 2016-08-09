@@ -11,7 +11,7 @@ BGBaseSystem -- base system component
 
 import sys
 import time
-import xmlrpclib
+import jsonrpclib
 import copy
 import re
 import Cobalt
@@ -588,7 +588,7 @@ class BGBaseSystem (Component):
                         # until the job has exhausted its maximum alloted time
                         del self.process_groups[pgroup.id]
                         raise
-                    except xmlrpclib.Fault, e:
+                    except jsonrpclib.Fault, e:
                         self.logger.error("%s: a fault occurred while attempting to start the process group using the %s "
                             "component", pgroup.label, pgroup.forker)
                         # do not release the resources; instead re-raise the exception and allow cqm to the opportunity to retry

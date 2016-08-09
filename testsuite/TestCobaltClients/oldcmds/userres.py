@@ -10,7 +10,7 @@ import os
 import pwd
 import time
 import math
-import xmlrpclib
+import jsonrpclib
 
 from Cobalt.Proxy import ComponentProxy
 from Cobalt.Exceptions import ComponentLookupError

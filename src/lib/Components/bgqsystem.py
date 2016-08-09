@@ -13,7 +13,7 @@ import signal
 import time
 import thread
 import threading
-import xmlrpclib
+import jsonrpclib
 import ConfigParser
 import traceback
 import pybgsched
@@ -1555,8 +1555,8 @@ class BGSystem (BGBaseSystem):
                         '%s cleanup:'% bg_job.getId())
                 self.logger.info("killing backend job: %s for block %s",
                         bg_job.getId(), block_name)
-            except xmlrpclib.Fault:
-                self.logger.warning("XMLRPC Error while killing backend job: %s for block %s, will retry.", bg_job.getId(), block_name)
+            except jsonrpclib.Fault:
+                self.logger.warning("JSONRPC Error while killing backend job: %s for block %s, will retry.", bg_job.getId(), block_name)
             except:
                 self.logger.critical("Unknown Error while killing backend job: %s for block %s, will retry.", bg_job.getId(), block_name)
             else:
@@ -2380,7 +2380,7 @@ class BGSystem (BGBaseSystem):
             self.logger.error("%s: failed to contact the %s component", pgroup.label, pgroup.forker)
             # do not release the resources; instead re-raise the exception and allow cqm to the opportunity to retry
             # until the job has exhausted its maximum alloted time
-        except (xmlrpclib.Fault), e:
+        except (jsonrpclib.Fault), e:
             self.logger.error("%s: a fault occurred while attempting to start the process group using the %s "
                     "component", pgroup.label, pgroup.forker)
             # do not release the resources; instead re-raise the exception and allow cqm to the opportunity to retry

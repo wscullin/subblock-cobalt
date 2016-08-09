@@ -8,7 +8,7 @@ import os
 import sys
 import pwd
 import os.path
-import xmlrpclib
+import jsonrpclib
 import ConfigParser
 import re
 import logging
@@ -147,7 +147,7 @@ if __name__ == '__main__':
             print >> sys.stderr, "Failed to contact system component"
             sys.exit(1)
         opts = system.validate_job(opts)
-    except xmlrpclib.Fault, flt:
+    except jsonrpclib.Fault, flt:
         logger.error("Job failed to validate: %s" % (flt.faultString))
         if not opts['forcenoval']:
             sys.exit(1)
@@ -259,7 +259,7 @@ if __name__ == '__main__':
     except ComponentLookupError:
         print >> sys.stderr, "Failed to connect to queue manager"
         sys.exit(1)
-    except xmlrpclib.Fault, flt:
+    except jsonrpclib.Fault, flt:
         if flt.faultCode == QueueError.fault_code:
             logger.error(flt.faultString)
             sys.exit(1)

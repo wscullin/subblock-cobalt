@@ -37,7 +37,7 @@ from threading import Lock, Condition
 import traceback
 import types
 import unittest
-import xmlrpclib
+import jsonrpclib
 
 import Cobalt.Components.cqm
 from Cobalt.Components.base import Component, exposed, automatic, query
@@ -1447,7 +1447,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_preempt()
                 assert False, "attempt to preempt while in the queued state should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobPreemptionError.fault_code
             self.job_get_state(assert_spec = {'state':'queued'})
         self.job_exec_driver(job_queued = _job_queued)
@@ -1523,7 +1523,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
         try:
             self.job_exec_driver(job_queued = _job_queued)
             assert False, "attempt to run while in a hold state should fail"
-        except xmlrpclib.Fault, e:
+        except jsonrpclib.Fault, e:
             assert e.faultCode == JobRunError.fault_code
 
     @timeout(60)
@@ -1561,7 +1561,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_preempt()
                 assert False, "attempt to preempt while in a hold state should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobPreemptionError.fault_code
             self.job_kill()
             self.assert_job_state("done")
@@ -1613,7 +1613,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_run(["R99"])
                 assert False, "attempt to run a job that is starting should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobRunError.fault_code
         self.job_exec_driver(job_pretask = _pretask)
         self.job_exec_driver(resource_pretask = _pretask)
@@ -1691,7 +1691,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_preempt()
                 assert False, "attempt to preempt a non-preemptable job should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobPreemptionError.fault_code
         self.job_exec_driver(job_pretask = _pretask)
         self.job_exec_driver(resource_pretask = _pretask)
@@ -1744,7 +1744,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_run(["R99"])
                 assert False, "attempt to run a job that is already running should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobRunError.fault_code
         self.job_exec_driver(task_active = _task_active)
 
@@ -1815,7 +1815,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_preempt()
                 assert False, "attempt to preempt a non-preemptable job should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobPreemptionError.fault_code
         self.job_exec_driver(task_active = _task_active)
 
@@ -1931,7 +1931,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_run(["R99"])
                 assert False, "attempt to run a job that is already running should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobRunError.fault_code
             self.qm_thr.resume()
             self.job_running_wait()
@@ -1992,7 +1992,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_preempt()
                 assert False, "attempt to preempt a non-preemptable job should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobPreemptionError.fault_code
             self.qm_thr.resume()
             self.job_running_wait()
@@ -2066,7 +2066,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_run(["R99"])
                 assert False, "attempt to run a job that is already running should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobRunError.fault_code
             self.qm_thr.resume()
             op = self.assert_next_task_op('signal')
@@ -2140,7 +2140,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_preempt()
                 assert False, "attempt to preempt a non-preemptable job should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobPreemptionError.fault_code
             self.qm_thr.resume()
             op = self.assert_next_task_op('signal')
@@ -2210,7 +2210,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_run(["R99"])
                 assert False, "attempt to run a job that is already running should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobRunError.fault_code
         self.job_exec_driver(task_active = _task_active)
 
@@ -2252,7 +2252,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_preempt()
                 assert False, "attempt to preempt a non-preemptable job should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobPreemptionError.fault_code
         self.job_exec_driver(task_active = _task_active)
 
@@ -2298,7 +2298,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_run(["R99"])
                 assert False, "attempt to run a job that is already running should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobRunError.fault_code
         self.job_exec_driver(job_posttask = _posttask)
         self.job_exec_driver(resource_posttask = _posttask)
@@ -2327,7 +2327,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_preempt()
                 assert False, "attempt to preempt a non-preemptable job should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobPreemptionError.fault_code
         self.job_exec_driver(job_posttask = _posttask)
         self.job_exec_driver(resource_posttask = _posttask)
@@ -2422,7 +2422,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_preempt()
                 assert False, "attempt to preempt while in a hold state should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobPreemptionError.fault_code
         self.job_exec_driver(num_preempts = 1, job_queued = _job_queued)
 
@@ -2435,7 +2435,7 @@ class CQMIntegrationTestBase (TestCQMComponent):
             try:
                 self.job_preempt()
                 assert False, "attempt to preempt while in a hold state should fail"
-            except xmlrpclib.Fault, e:
+            except jsonrpclib.Fault, e:
                 assert e.faultCode == JobPreemptionError.fault_code
             self.job_user_release(new_hold = False)
         self.job_exec_driver(num_preempts = 1, job_queued = _job_queued)
