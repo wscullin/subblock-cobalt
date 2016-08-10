@@ -204,8 +204,8 @@ class SSLHTTPConnection(httplib.HTTPConnection):
 
 class JSONRPCTransport(jsonrpclib.jsonrpc.Transport):
     def __init__(self, key=None, cert=None, ca=None, scns=None, use_datetime=0, timeout=90):
-        if hasattr(jsonrpclib.Transport, '__init__'):
-            jsonrpclib.Transport.__init__(self)
+        if hasattr(jsonrpclib.jsonrpc.Transport, '__init__'):
+            jsonrpclib.jsonrpc.Transport.__init__(self)
         self.key = key
         self.cert = cert
         self.ca = ca
