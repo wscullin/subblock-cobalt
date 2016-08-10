@@ -72,7 +72,7 @@ class RetryMethod(_Method):
                 return retval 
             except jsonrpclib.ProtocolError, err:
                 log.error("Server failure: Protocol Error: %s %s" % \
-                              (err.errcode, err.errmsg))
+                              (err.args, err.msg))
                 raise jsonrpclib.Fault(20, "Server Failure")
             except jsonrpclib.Fault as fault:
                 raise
