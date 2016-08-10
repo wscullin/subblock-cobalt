@@ -9,6 +9,7 @@ load_config -- read configuration files
 
 __revision__ = '$Revision: 2130 $'
 
+import jsonrpclib
 from jsonrpclib import ServerProxy, Fault
 from jsonrpclib.jsonrpc import _Method
 from ConfigParser import SafeConfigParser, NoSectionError
@@ -201,7 +202,7 @@ class SSLHTTPConnection(httplib.HTTPConnection):
         self.sock.closeSocket = True
 
 
-class JSONRPCTransport(jsonrpclib.Transport):
+class JSONRPCTransport(jsonrpclib.jsonrpc.Transport):
     def __init__(self, key=None, cert=None, ca=None, scns=None, use_datetime=0, timeout=90):
         if hasattr(jsonrpclib.Transport, '__init__'):
             jsonrpclib.Transport.__init__(self)
