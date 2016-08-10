@@ -9,7 +9,8 @@ load_config -- read configuration files
 
 __revision__ = '$Revision: 2130 $'
 
-from jsonrpclib import ServerProxy, Fault, _Method
+from jsonrpclib import ServerProxy, Fault
+from jsonrpclib.jsonrpc import _Method
 from ConfigParser import SafeConfigParser, NoSectionError
 import logging
 import socket
