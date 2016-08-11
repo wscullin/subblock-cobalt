@@ -60,28 +60,24 @@ def find_intended_location (component, config_files=None):
 class CobaltJSONRPCDispatcher (SimpleJSONRPCServer.SimpleJSONRPCDispatcher):
     logger = logging.getLogger("Cobalt.Server.CobaltJSONRPCDispatcher")
     def __init__ (self, allow_none, encoding):
-        SimpleJSONRPCServer.SimpleJSONRPCDispatcher.__init__(self,
-                                                           allow_none,
-                                                           encoding)
+        SimpleJSONRPCServer.SimpleJSONRPCDispatcher.__init__(self)
         self.allow_none = allow_none
         self.encoding = encoding
 
     def _marshaled_dispatch (self, data):
         method_func = None
         params, method = jsonrpclib.loads(data)
-        #print method, "\n" ,params
+        print method, "\n" ,params
 
         try:
-            #print "%s: %s being poked" % (time.ctime(), method)
+            print "%s: %s being poked" % (time.ctime(), method)
             #time.sleep(120)
             response = self.instance._dispatch(method, params, self.funcs)
             response = (response,)
             raw_response = jsonrpclib.dumps(response, methodresponse=1,
-                                           allow_none=self.allow_none,
                                            encoding=self.encoding)
         except jsonrpclib.Fault, fault:
             raw_response = jsonrpclib.dumps(fault,
-                                           allow_none=self.allow_none,
                                            encoding=self.encoding)
         except:
             # report exception back to server
@@ -249,35 +245,35 @@ class JSONRPCRequestHandler (SimpleJSONRPCServer.SimpleJSONRPCRequestHandler):
                 return False
         return True
 
-###    ### FIXME need to override do_POST here
-###    def do_POST(self):
-###        try:
-###            max_chunk_size = 10*1024*1024
-###            size_remaining = int(self.headers["content-length"])
-###            L = []
-###            while size_remaining:
-###                chunk_size = min(size_remaining, max_chunk_size)
-###                L.append(self.rfile.read(chunk_size))
-###                size_remaining -= len(L[-1])
-###            data = ''.join(L)
-###
-###            response = self.server._marshaled_dispatch(data)
-###        except: 
-###            raise
-###            self.send_response(500)
-###            self.end_headers()
-###        else:
-###            # got a valid XML RPC response
-###            self.send_response(200)
-###            self.send_header("Content-type", "text/xml")
-###            self.send_header("Content-length", str(len(response)))
-###            self.end_headers()
-###            self.wfile.write(response)
-###
-###            # shut down the connection
-###            self.wfile.flush()
-###            self.connection.shutdown(1)
-###   
+    # FIXME need to override do_POST here
+    def do_POST(self):
+        try:
+            max_chunk_size = 10*1024*1024
+            size_remaining = int(self.headers["content-length"])
+            L = []
+            while size_remaining:
+                chunk_size = min(size_remaining, max_chunk_size)
+                L.append(self.rfile.read(chunk_size))
+                size_remaining -= len(L[-1])
+            data = ''.join(L)
+
+            response = self.server._marshaled_dispatch(data)
+        except: 
+            raise
+            self.send_response(500)
+            self.end_headers()
+        else:
+            # got a valid XML RPC response
+            self.send_response(200)
+            self.send_header("Content-type", "text/json")
+            self.send_header("Content-length", str(len(response)))
+            self.end_headers()
+            self.wfile.write(response)
+
+            # shut down the connection
+            self.wfile.flush()
+            self.connection.shutdown(1)
+   
 
 class BaseJSONRPCServer (SSLServer, CobaltJSONRPCDispatcher, object):
     
